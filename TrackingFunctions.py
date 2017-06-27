@@ -54,6 +54,7 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32), hist_bins=3
     hog_features = []
     # Iterate through the list of images
     for file in imgs:
+        col_f = []
         # Read in each one by one
         image = mpimg.imread(file)
         # apply color conversion if other than 'RGB'
@@ -73,11 +74,12 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32), hist_bins=3
 
         if spatial_feat is True:
             spatial_features = bin_spatial(feature_image, size=spatial_size)
-            color_features.append(spatial_features)
+            col_f.append(spatial_features)
         if hist_feat is True:
             # Apply color_hist()
             hist_features = color_hist(feature_image, nbins=hist_bins)
-            color_features.append(hist_features)
+            col_f.append(hist_features)
+        color_features.append(np.concatenate(col_f))
         if hog_feat is True:
             # Call get_hog_features() with vis=False, feature_vec=True
             if hog_channel == 'ALL':
@@ -92,7 +94,7 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32), hist_bins=3
                                                 pix_per_cell, cell_per_block, vis=False, feature_vec=True)
             hog_features.append(hog_f)
     # Return list of feature vectors
-    return np.concatenate(color_features, axis=0), hog_features
+    return color_features, hog_features
 
 
 # Define a function that takes an image,
@@ -158,7 +160,8 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
 def single_img_features(img, color_space='RGB', spatial_size=(32, 32), hist_bins=32, orient=9, pix_per_cell=8,
                         cell_per_block=2, hog_channel=0, spatial_feat=True, hist_feat=True, hog_feat=True):
     # 1) Define an empty list to receive features
-    img_features = []
+    color_features = []
+    hog_features = []
     # 2) Apply color conversion if other than 'RGB'
     if color_space != 'RGB':
         if color_space == 'HSV':
@@ -175,13 +178,12 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32), hist_bins
     # 3) Compute spatial features if flag is set
     if spatial_feat is True:
         spatial_features = bin_spatial(feature_image, size=spatial_size)
-        # 4) Append features to list
-        img_features.append(spatial_features)
+    else: spatial_features = None
     # 5) Compute histogram features if flag is set
     if hist_feat is True:
         hist_features = color_hist(feature_image, nbins=hist_bins)
-        # 6) Append features to list
-        img_features.append(hist_features)
+    else: hist_features: None
+    color_features = np.concatenate((spatial_features, hist_features))
     # 7) Compute HOG features if flag is set
     if hog_feat is True:
         if hog_channel == 'ALL':
@@ -192,16 +194,14 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32), hist_bins
         else:
             hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, pix_per_cell, cell_per_block,
                                             vis=False, feature_vec=True)
-        # 8) Append features to list
-        img_features.append(hog_features)
 
     # 9) Return concatenated array of features
-    return np.concatenate(img_features)
+    return color_features, hog_features
 
 
 # Define a function you will pass an image
 # and the list of windows to be searched (output of slide_windows())
-def search_windows(img, windows, clf, scaler, color_space='RGB', spatial_size=(32, 32), hist_bins=32,
+def search_windows(img, windows, clf, scaler_color, scaler_hog, color_space='RGB', spatial_size=(32, 32), hist_bins=32,
                    hist_range=(0, 256), orient=9, pix_per_cell=8, cell_per_block=2, hog_channel=0, spatial_feat=True,
                    hist_feat=True, hog_feat=True):
     # 1) Create an empty list to receive positive detection windows
@@ -211,12 +211,14 @@ def search_windows(img, windows, clf, scaler, color_space='RGB', spatial_size=(3
         # 3) Extract the test window from original image
         test_img = cv2.resize(img[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
         # 4) Extract features for that window using single_img_features()
-        features = single_img_features(test_img, color_space=color_space, spatial_size=spatial_size,
-                                       hist_bins=hist_bins, orient=orient, pix_per_cell=pix_per_cell,
-                                       cell_per_block=cell_per_block, hog_channel=hog_channel,
-                                       spatial_feat=spatial_feat, hist_feat=hist_feat, hog_feat=hog_feat)
+        color_features, hog_features = single_img_features(test_img, color_space=color_space, spatial_size=spatial_size,
+                                                           hist_bins=hist_bins, orient=orient, pix_per_cell=pix_per_cell,
+                                                           cell_per_block=cell_per_block, hog_channel=hog_channel,
+                                                           spatial_feat=spatial_feat, hist_feat=hist_feat, hog_feat=hog_feat)
         # 5) Scale extracted features to be fed to classifier
-        test_features = scaler.transform(np.array(features).reshape(1, -1))
+        test_features_color = scaler_color.transform(np.array(color_features).reshape(1, -1))
+        test_features_hog = scaler_hog.transform(np.array(hog_features).reshape(1, -1))
+        test_features = np.concatenate((test_features_color, test_features_hog), axis=1)
         # 6) Predict using your classifier
         prediction = clf.predict(test_features)
         # 7) If positive (prediction == 1) then save the window
@@ -227,7 +229,7 @@ def search_windows(img, windows, clf, scaler, color_space='RGB', spatial_size=(3
 
 
 # Define a single function that can extract features using hog sub-sampling and make predictions
-def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins,
+def find_cars(img, ystart, ystop, scale, svc, X_scaler_color, X_scaler_hog, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins,
               color_space='YCrCb'):
     draw_img = np.copy(img)
     img = img.astype(np.float32) / 255
@@ -292,9 +294,10 @@ def find_cars(img, ystart, ystop, scale, svc, X_scaler, orient, pix_per_cell, ce
             hist_features = color_hist(subimg, nbins=hist_bins)
 
             # Scale features and make a prediction
-            test_features = X_scaler.transform(
-                np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))
-            # test_features = X_scaler.transform(np.hstack((shape_feat, hist_feat)).reshape(1, -1))
+            test_features_color = X_scaler_color.transform(np.hstack((spatial_features, hist_features)).reshape(1, -1))
+            test_features_hog = X_scaler_hog.transform(np.array(hog_features).reshape(1, -1))
+
+            test_features = np.concatenate((test_features_color, test_features_hog), axis=1)
             test_prediction = svc.predict(test_features)
 
             if test_prediction == 1:

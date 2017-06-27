@@ -21,14 +21,14 @@ notcars = []
 for image in images:
     notcars.append(image)
 
-sample_size = 100
-cars = cars[0:sample_size]
-notcars = notcars[0:sample_size]
+#sample_size = 100
+#cars = cars[0:sample_size]
+#notcars = notcars[0:sample_size]
 
 
 # Parameters
-color_space = 'YUV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 9  # HOG orientations
+color_space = 'HSV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 12  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
@@ -49,21 +49,21 @@ t2 = time.time()
 print(round(t2-t, 2), 'Seconds to extract features...')
 
 # scaling color features
-X_color = np.float64(car_features_color)
+X_color = np.concatenate((car_features_color, notcar_features_color))
 # Fit a per-column scaler
 X_scaler_color = StandardScaler().fit(X_color)
 # Apply the scaler to X
 scaled_X_color = X_scaler_color.transform(X_color)
 
 # scaling shape features
-X_hog = np.float64(car_features_hog)
+X_hog = np.concatenate((car_features_hog, notcar_features_hog))
 # Fit a per-column scaler
 X_scaler_hog = StandardScaler().fit(X_hog)
 # Apply the scaler to X
 scaled_X_hog = X_scaler_hog.transform(X_hog)
 
 # concatenate features
-X = np.concatenate((scaled_X_color, scaled_X_hog), axis=1)
+scaled_X = np.concatenate((scaled_X_color, scaled_X_hog), axis=1)
 
 # Define the labels vector
 y = np.hstack((np.ones(len(car_features_color)), np.zeros(len(notcar_features_color))))
@@ -90,4 +90,5 @@ t = time.time()
 
 if round(svc.score(X_test, y_test), 4) > .97:
     joblib.dump(svc, 'CarClassifier.pkl')
-    joblib.dump(X_scaler, 'scaler.pkl')
+    joblib.dump(X_scaler_color, 'ScalerColor.pkl')
+    joblib.dump(X_scaler_hog, 'ScalerHOG.pkl')
