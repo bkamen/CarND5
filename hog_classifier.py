@@ -94,7 +94,7 @@ colorspace = 'YCrCb' # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9
 pix_per_cell = 8
 cell_per_block = 2
-hog_channel = 0 # Can be 0, 1, 2, or "ALL"
+hog_channel = 'ALL' # Can be 0, 1, 2, or "ALL"
 
 t=time.time()
 car_features = extract_features(cars, cspace=colorspace, orient=orient,
@@ -108,9 +108,7 @@ print(round(t2-t, 2), 'Seconds to extract HOG features...')
 # Create an array stack of feature vectors
 X = np.vstack((car_features, notcar_features)).astype(np.float64)
 # Fit a per-column scaler
-X_scaler = preprocessing.StandardScaler().fit(X)
-# Apply the scaler to X
-scaled_X = X_scaler.transform(X)
+scaled_X = preprocessing.StandardScaler().fit_transform(X)
 
 # Define the labels vector
 y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
