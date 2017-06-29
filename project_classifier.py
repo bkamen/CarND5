@@ -5,6 +5,8 @@ from sklearn.externals import joblib
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 from TrackingFunctions import *
 import glob
 import time
@@ -27,13 +29,13 @@ for image in images:
 
 
 # Parameters
-color_space = 'HSV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 12  # HOG orientations
+color_space = 'YUV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 10  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
 spatial_size = (16, 16)  # Spatial binning dimensions
-hist_bins = 16  # Number of histogram bins
+hist_bins = 32  # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
@@ -78,6 +80,7 @@ print('Using:', orient, 'orientations', pix_per_cell,
 print('Feature vector length:', len(X_train[0]))
 # Use a linear SVC
 svc = LinearSVC()
+#svc = RandomForestClassifier(n_estimators=10)
 # Check the training time for the SVC
 t = time.time()
 svc.fit(X_train, y_train)

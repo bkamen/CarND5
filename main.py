@@ -1,16 +1,18 @@
 from TrackingFunctions import *
 from sklearn.externals import joblib
 import matplotlib.pyplot as plt
+from scipy.ndimage.measurements import label
+from moviepy.editor import VideoFileClip
 
 # Parameters
 y_start_stop = [None, None]  # Min and max in y to search in slide_window()
-color_space = 'HSV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 12  # HOG orientations
+color_space = 'YUV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 10  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
 spatial_size = (16, 16)  # Spatial binning dimensions
-hist_bins = 16  # Number of histogram bins
+hist_bins = 32  # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
@@ -20,29 +22,53 @@ svc = joblib.load('CarClassifier.pkl')
 X_scaler_color = joblib.load('ScalerColor.pkl')
 X_scaler_hog = joblib.load('ScalerHOG.pkl')
 
-image = mpimg.imread('./test_images/test1.jpg')
-draw_image = np.copy(image)
-image = image.astype(np.float32)/255
+#image = mpimg.imread('./test_images/test1.jpg')
+#draw_image = np.copy(image)
+#image = image.astype(np.float32)/255
 
-windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop, xy_window=(128, 128),
-                       xy_overlap=(0.7, 0.7))
+xy_window_multiscale = np.array((#[32, 32],
+                                 [64, 64],
+                                 [128, 128],
+                                 [172, 172]))
+y_start_stop_multiscale = np.array((#[400, 600],
+                                    [400, 600],
+                                    [400, 700],
+                                    [400, 700]))
+x_start_stop_multiscale = np.array((#[400, None],
+                                    [400, None],
+                                    [400, None],
+                                    [400, None]))
+xy_overlap_multiscale = np.array((#[0.1, 0.1],
+                                  [0.3, 0.3],
+                                  [0.9, 0.9],
+                                  [0.9, 0.9]))
 
-hot_windows = search_windows(image, windows, svc, X_scaler_color, X_scaler_hog, color_space=color_space, spatial_size=spatial_size,
-                             hist_bins=hist_bins, orient=orient, pix_per_cell=pix_per_cell,
-                             cell_per_block=cell_per_block, hog_channel=hog_channel, spatial_feat=spatial_feat,
-                             hist_feat=hist_feat, hog_feat=hog_feat)
 
-window_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)
+def detect_cars(image):
+    image = image.astype(np.float32) / 255
+    windows = []
+    for i, j, k, l in zip(xy_window_multiscale, y_start_stop_multiscale, x_start_stop_multiscale, xy_overlap_multiscale):
+        windows_scale = slide_window(image, k, j, i, l)
+        windows.extend(windows_scale)
 
-plt.imshow(window_img)
-plt.show()
+    hot_windows = search_windows(image, windows, svc, X_scaler_color, X_scaler_hog, color_space=color_space, spatial_size=spatial_size,
+                                 hist_bins=hist_bins, orient=orient, pix_per_cell=pix_per_cell,
+                                 cell_per_block=cell_per_block, hog_channel=hog_channel, spatial_feat=spatial_feat,
+                                 hist_feat=hist_feat, hog_feat=hog_feat)
 
-ystart = 300
-ystop = 700
-scale = 2
+   # window_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)
 
-out_img = find_cars(image, ystart, ystop, scale, svc, X_scaler_color, X_scaler_hog, orient, pix_per_cell, cell_per_block, spatial_size,
-                    hist_bins)
+    heatmap = np.zeros_like(image[:, :, 0])
+    heatmap = add_heat(heatmap, hot_windows)
+    heatmap = apply_threshold(heatmap, 1)
+    heatmap = np.clip(heatmap, 0, 255)
 
-plt.imshow(out_img)
-plt.show()
+    labels = label(heatmap)
+    out_img = draw_labeled_bboxes(image, labels)
+
+    return out_img
+
+vid_output = 'project_video_output.mp4'
+clip1 = VideoFileClip('project_video.mp4', audio=False)
+vid_clip = clip1.fl_image(detect_cars)
+vid_clip.write_videofile(vid_output, audio=False)
