@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 from skimage.feature import hog
 
+
 # Define a function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, feature_vec=True):
     # Call with two outputs if vis==True
@@ -33,11 +34,11 @@ def bin_spatial(img, size=(32, 32)):
 
 # Define a function to compute color histogram features
 # NEED TO CHANGE bins_range if reading .png files with mpimg!
-def color_hist(img, nbins=32, bins_range=(0, 256)):
+def color_hist(img, nbins=32, bins_range=(0, 1)):
     # Compute the histogram of the color channels separately
-    channel1_hist = np.histogram(img[:, :, 0], bins=nbins, range=bins_range)
-    channel2_hist = np.histogram(img[:, :, 1], bins=nbins, range=bins_range)
-    channel3_hist = np.histogram(img[:, :, 2], bins=nbins, range=bins_range)
+    channel1_hist = np.histogram(img[:, :, 0], bins=nbins, range=bins_range, density=True)
+    channel2_hist = np.histogram(img[:, :, 1], bins=nbins, range=bins_range, density=True)
+    channel3_hist = np.histogram(img[:, :, 2], bins=nbins, range=bins_range, density=True)
     # Concatenate the histograms into a single feature vector
     hist_features = np.concatenate((channel1_hist[0], channel2_hist[0], channel3_hist[0]))
     # Return the individual histograms, bin_centers and feature vector
@@ -181,8 +182,13 @@ def single_img_features(img, color_space='RGB', spatial_size=(32, 32), hist_bins
     # 5) Compute histogram features if flag is set
     if hist_feat is True:
         hist_features = color_hist(feature_image, nbins=hist_bins)
-    else: hist_features: None
-    color_features = np.concatenate((spatial_features, hist_features))
+    else: hist_features = None
+    if spatial_feat is False:
+        color_features = hist_features
+    elif hist_feat is False:
+        color_features = spatial_feat
+    else:
+        color_features = np.concatenate((spatial_features, hist_features))
     # 7) Compute HOG features if flag is set
     if hog_feat is True:
         if hog_channel == 'ALL':
