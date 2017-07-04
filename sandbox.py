@@ -6,8 +6,8 @@ import glob
 
 # Parameters
 y_start_stop = [None, None]  # Min and max in y to search in slide_window()
-color_space = 'YUV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 10  # HOG orientations
+color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 9  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
@@ -23,7 +23,7 @@ X_scaler_color = joblib.load('ScalerColor.pkl')
 X_scaler_hog = joblib.load('ScalerHOG.pkl')
 
 xy_window_multiscale = np.array((#[32, 32],
-                                 [64, 64],
+                                 [96, 96],
                                  [128, 128],
                                  [172, 172]))
 y_start_stop_multiscale = np.array((#[400, 600],
@@ -35,9 +35,9 @@ x_start_stop_multiscale = np.array((#[400, None],
                                     [400, None],
                                     [400, None]))
 xy_overlap_multiscale = np.array((#[0.1, 0.1],
-                                  [0.3, 0.3],
-                                  [0.9, 0.9],
-                                  [0.9, 0.9]))
+                                  [0.4, 0.4],
+                                  [0.6, 0.6],
+                                  [0.6, 0.6]))
 
 images = glob.glob('./test_images/*.jpg')
 
@@ -64,7 +64,7 @@ for im in images:
 
     heatmap = np.zeros_like(image[:, :, 0])
     heatmap = add_heat(heatmap, hot_windows)
-    heatmap = apply_threshold(heatmap, 1)
+    heatmap = apply_threshold(heatmap, 0)
     heatmap = np.clip(heatmap, 0, 255)
     mpimg.imsave('./output_images/heatmap_' + im.split('\\')[-1], heatmap, cmap='hot')
 

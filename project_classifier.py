@@ -29,8 +29,8 @@ for image in images:
 
 
 # Parameters
-color_space = 'YUV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 10  # HOG orientations
+color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 9  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"

@@ -6,8 +6,8 @@ from moviepy.editor import VideoFileClip
 
 # Parameters
 y_start_stop = [None, None]  # Min and max in y to search in slide_window()
-color_space = 'YUV'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 10  # HOG orientations
+color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
+orient = 9  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
@@ -27,7 +27,7 @@ X_scaler_hog = joblib.load('ScalerHOG.pkl')
 #image = image.astype(np.float32)/255
 
 xy_window_multiscale = np.array((#[32, 32],
-                                 [64, 64],
+                                 [96, 96],
                                  [128, 128],
                                  [172, 172]))
 y_start_stop_multiscale = np.array((#[400, 600],
@@ -39,12 +39,13 @@ x_start_stop_multiscale = np.array((#[400, None],
                                     [400, None],
                                     [400, None]))
 xy_overlap_multiscale = np.array((#[0.1, 0.1],
-                                  [0.3, 0.3],
-                                  [0.9, 0.9],
-                                  [0.9, 0.9]))
+                                  [0.4, 0.4],
+                                  [0.6, 0.6],
+                                  [0.6, 0.6]))
 
 
 def detect_cars(image):
+    draw_image = np.copy(image)
     image = image.astype(np.float32) / 255
     windows = []
     for i, j, k, l in zip(xy_window_multiscale, y_start_stop_multiscale, x_start_stop_multiscale, xy_overlap_multiscale):
@@ -64,7 +65,7 @@ def detect_cars(image):
     heatmap = np.clip(heatmap, 0, 255)
 
     labels = label(heatmap)
-    out_img = draw_labeled_bboxes(image, labels)
+    out_img = draw_labeled_bboxes(draw_image, labels)
 
     return out_img
 
