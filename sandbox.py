@@ -11,7 +11,7 @@ orient = 9  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
-spatial_size = (16, 16)  # Spatial binning dimensions
+spatial_size = (32, 32)  # Spatial binning dimensions
 hist_bins = 32  # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
@@ -35,9 +35,9 @@ x_start_stop_multiscale = np.array((#[400, None],
                                     [400, None],
                                     [400, None]))
 xy_overlap_multiscale = np.array((#[0.1, 0.1],
-                                  [0.4, 0.4],
-                                  [0.6, 0.6],
-                                  [0.6, 0.6]))
+                                  [0.8, 0.8],
+                                  [0.8, 0.8],
+                                  [0.8, 0.8]))
 
 images = glob.glob('./test_images/*.jpg')
 
@@ -64,7 +64,7 @@ for im in images:
 
     heatmap = np.zeros_like(image[:, :, 0])
     heatmap = add_heat(heatmap, hot_windows)
-    heatmap = apply_threshold(heatmap, 0)
+    heatmap = apply_threshold(heatmap, 1)
     heatmap = np.clip(heatmap, 0, 255)
     mpimg.imsave('./output_images/heatmap_' + im.split('\\')[-1], heatmap, cmap='hot')
 
