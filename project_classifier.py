@@ -7,9 +7,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from TrackingFunctions import *
 import glob
 import time
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_classif
 
 
 # Divide up into cars and notcars
@@ -70,6 +73,9 @@ scaled_X = np.concatenate((scaled_X_color, scaled_X_hog), axis=1)
 # Define the labels vector
 y = np.hstack((np.ones(len(car_features_color)), np.zeros(len(notcar_features_color))))
 
+# remove features with too low variance
+scaled_X = SelectKBest(f_classif, k=int(0.75*len(scaled_X[0]))).fit_transform(scaled_X, y)
+
 # Split up data into randomized training and test sets
 rand_state = np.random.randint(0, 100)
 X_train, X_test, y_train, y_test = train_test_split(scaled_X, y, test_size=0.2, random_state=rand_state)
@@ -79,8 +85,9 @@ print('Using:', orient, 'orientations', pix_per_cell,
       'pixels per cell and', cell_per_block, 'cells per block')
 print('Feature vector length:', len(X_train[0]))
 # Use a linear SVC
-svc = LinearSVC()
-#svc = RandomForestClassifier(n_estimators=10)
+#svc = LinearSVC()
+#svc = RandomForestClassifier(n_estimators=100, n_jobs=-1)
+svc = AdaBoostClassifier(n_estimators=100)
 # Check the training time for the SVC
 t = time.time()
 svc.fit(X_train, y_train)

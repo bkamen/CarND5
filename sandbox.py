@@ -25,19 +25,23 @@ X_scaler_hog = joblib.load('ScalerHOG.pkl')
 xy_window_multiscale = np.array((#[32, 32],
                                  [96, 96],
                                  [128, 128],
-                                 [172, 172]))
+                                 [172, 172],
+                                 [140, 140]))
 y_start_stop_multiscale = np.array((#[400, 600],
                                     [400, 600],
+                                    [400, 700],
                                     [400, 700],
                                     [400, 700]))
 x_start_stop_multiscale = np.array((#[400, None],
                                     [400, None],
                                     [400, None],
+                                    [400, None],
                                     [400, None]))
 xy_overlap_multiscale = np.array((#[0.1, 0.1],
-                                  [0.8, 0.8],
-                                  [0.8, 0.8],
-                                  [0.8, 0.8]))
+                                  [0.7, 0.6],
+                                  [0.7, 0.6],
+                                  [0.7, 0.6],
+                                  [0.7, 0.6]))
 
 images = glob.glob('./test_images/*.jpg')
 

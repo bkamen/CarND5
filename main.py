@@ -3,6 +3,7 @@ from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 from scipy.ndimage.measurements import label
 from moviepy.editor import VideoFileClip
+from hmap import Hmap
 
 # Parameters
 y_start_stop = [None, None]  # Min and max in y to search in slide_window()
@@ -29,19 +30,23 @@ X_scaler_hog = joblib.load('ScalerHOG.pkl')
 xy_window_multiscale = np.array((#[32, 32],
                                  [96, 96],
                                  [128, 128],
-                                 [172, 172]))
+                                 [172, 172],
+                                 [140, 140]))
 y_start_stop_multiscale = np.array((#[400, 600],
                                     [400, 600],
+                                    [400, 700],
                                     [400, 700],
                                     [400, 700]))
 x_start_stop_multiscale = np.array((#[400, None],
                                     [400, None],
                                     [400, None],
+                                    [400, None],
                                     [400, None]))
 xy_overlap_multiscale = np.array((#[0.1, 0.1],
-                                  [0.8, 0.8],
-                                  [0.8, 0.8],
-                                  [0.8, 0.8]))
+                                  [0.2, 0.2],
+                                  [0.2, 0.2],
+                                  [0.2, 0.2],
+                                  [0.2, 0.2]))
 
 
 def detect_cars(image):
@@ -61,8 +66,7 @@ def detect_cars(image):
 
     heatmap = np.zeros_like(image[:, :, 0])
     heatmap = add_heat(heatmap, hot_windows)
-    heatmap = apply_threshold(heatmap, 1)
-    heatmap = np.clip(heatmap, 0, 255)
+    heatmap = np.clip(apply_threshold(heatmap, 0), 0, 255)
 
     labels = label(heatmap)
     out_img = draw_labeled_bboxes(draw_image, labels)
