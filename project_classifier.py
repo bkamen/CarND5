@@ -87,7 +87,7 @@ print('Feature vector length:', len(X_train[0]))
 # Use a linear SVC
 #svc = LinearSVC()
 #svc = RandomForestClassifier(n_estimators=100, n_jobs=-1)
-svc = AdaBoostClassifier(n_estimators=100)
+svc = AdaBoostClassifier(n_estimators=50)
 # Check the training time for the SVC
 t = time.time()
 svc.fit(X_train, y_train)
