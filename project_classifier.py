@@ -34,11 +34,11 @@ for image in images:
 # Parameters
 color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9  # HOG orientations
-pix_per_cell = 8  # HOG pixels per cell
+pix_per_cell = 32  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
-spatial_size = (32, 32)  # Spatial binning dimensions
-hist_bins = 32  # Number of histogram bins
+spatial_size = (16, 16)  # Spatial binning dimensions
+hist_bins = 16  # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
@@ -74,7 +74,7 @@ scaled_X = np.concatenate((scaled_X_color, scaled_X_hog), axis=1)
 y = np.hstack((np.ones(len(car_features_color)), np.zeros(len(notcar_features_color))))
 
 # remove features with too low variance
-scaled_X = SelectKBest(f_classif, k=int(0.75*len(scaled_X[0]))).fit_transform(scaled_X, y)
+#scaled_X = SelectKBest(f_classif, k=int(.7*len(scaled_X[0]))).fit_transform(scaled_X, y)
 
 # Split up data into randomized training and test sets
 rand_state = np.random.randint(0, 100)
@@ -86,8 +86,9 @@ print('Using:', orient, 'orientations', pix_per_cell,
 print('Feature vector length:', len(X_train[0]))
 # Use a linear SVC
 #svc = LinearSVC()
-#svc = RandomForestClassifier(n_estimators=100, n_jobs=-1)
-svc = AdaBoostClassifier(n_estimators=50)
+svc = SVC(kernel='rbf')
+#svc = RandomForestClassifier(n_estimators=50, n_jobs=-1)
+#svc = AdaBoostClassifier(n_estimators=50)
 # Check the training time for the SVC
 t = time.time()
 svc.fit(X_train, y_train)
