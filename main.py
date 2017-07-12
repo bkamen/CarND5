@@ -13,7 +13,7 @@ pix_per_cell = 32  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
 hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
 spatial_size = (16, 16)  # Spatial binning dimensions
-hist_bins = 16  # Number of histogram bins
+hist_bins = 32  # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
@@ -31,24 +31,24 @@ X_scaler_hog = joblib.load('ScalerHOG.pkl')
 
 xy_window_multiscale = np.array((#[32, 32],
                                  [96, 96],
-                                 [128, 128],
-                                 [172, 172],
+                                 #[128, 128],
+                                 #[172, 172],
                                  [140, 140]))
 y_start_stop_multiscale = np.array((#[400, 600],
                                     [400, 600],
-                                    [400, 700],
-                                    [400, 700],
+                                   # [400, 700],
+                                    #[400, 700],
                                     [400, 700]))
 x_start_stop_multiscale = np.array((#[400, None],
                                     [400, None],
-                                    [400, None],
-                                    [400, None],
+                                   # [400, None],
+                                    #[400, None],
                                     [400, None]))
 xy_overlap_multiscale = np.array((#[0.1, 0.1],
-                                  [0.7, 0.6],
-                                  [0.7, 0.6],
-                                  [0.7, 0.6],
-                                  [0.7, 0.6]))
+                                  [0.5, 0.5],
+                                 #[0.7, 0.6],
+                                 # [0.7, 0.6],
+                                  [0.9, 0.9]))
 
 
 def detect_cars(image):
