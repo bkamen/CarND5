@@ -99,9 +99,9 @@ The scales were chosen to find a good tradeoff between performance and accuracy.
 The file 'main.py' holds the code for the pipeline. In line 51-59 a function called 'slide_window' is called. This function is defined in the file 'TrackingFunctions.py', line 100-142.
 
 Below you will find the drawn rectangles for the windows that are searched in each scale:
-![](./output_images/drawnboxes1_test1.png "")
-![](./output_images/drawnboxes2_test1.png "")
-![](./output_images/drawnboxes3_test1.png "")
+![](./output_images/drawnboxes1_test1.jpg "")
+![](./output_images/drawnboxes2_test1.jpg "")
+![](./output_images/drawnboxes3_test1.jpg "")
 
 After that the funtion 'search_windows' (defined in the file 'TrackingFunctions.py', line 207-233) determines if there is vehicle in the window or not.
 
@@ -115,17 +115,17 @@ First the partial images are resized then the color and HoG features are extract
 Then the classifier is called to determine if the image displays a vehicle.
 
 Result of search_windows:
-![](./output_images/rectangles_test1.png "")
+![](./output_images/rectangles_test1.jpg "")
 
 The next is that an 2d array is initialized having the same dimensions as the image. For every returned positively classified window the pixels in this window are added by 1 in that forementioned array.
 The result looks like this:
-![](./output_images/heatmap_test1.png "")
+![](./output_images/heatmap_test1.jpg "")
 
 On that array the function `scipy.ndimage.measurements.label()` is apllied which leads to this result:
-![](./output_images/label_test1.png "")
+![](./output_images/label_test1.jpg "")
 
 These rectangles represent the identified vehicles. The final result looks like this:
-![](./output_images/final_test1.png "")
+![](./output_images/final_test1.jpg "")
 
 
 ---
