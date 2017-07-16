@@ -43,12 +43,15 @@ for im in images:
     image = image.astype(np.float32)/255
 
     windows = []
+    m=1
     for i, j, k, l in zip(xy_window_multiscale, y_start_stop_multiscale, x_start_stop_multiscale, xy_overlap_multiscale):
         windows_scale = slide_window(image, k, j, i, l)
         img_ = draw_boxes(draw_image, windows_scale, (255, 0, 0), 1)
+        mpimg.imsave('./output_images/drawnboxes'+str(m)+'_' + im.split('\\')[-1], img_)
         #plt.imshow(img_)
         #plt.show()
         windows.extend(windows_scale)
+        m+=1
 
     hot_windows = search_windows(image, windows, svc, X_scaler_color, X_scaler_hog, color_space=color_space, spatial_size=spatial_size,
                                  hist_bins=hist_bins, orient=orient, pix_per_cell=pix_per_cell,

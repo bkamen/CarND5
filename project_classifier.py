@@ -13,6 +13,7 @@ import glob
 import time
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
+import matplotlib.pyplot as plt
 
 
 # Divide up into cars and notcars
@@ -44,9 +45,11 @@ hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
 
 t = time.time()
+# extraction of the features of the car images
 car_features_color, car_features_hog = extract_features(cars, color_space, spatial_size, hist_bins, orient,
                                                         pix_per_cell, cell_per_block, hog_channel, spatial_feat,
                                                         hist_feat, hog_feat)
+# extraction of the features of the non-car images
 notcar_features_color, notcar_features_hog = extract_features(notcars, color_space, spatial_size, hist_bins, orient,
                                                               pix_per_cell, cell_per_block, hog_channel, spatial_feat,
                                                               hist_feat, hog_feat)
@@ -66,6 +69,25 @@ X_hog = np.concatenate((car_features_hog, notcar_features_hog))
 X_scaler_hog = StandardScaler().fit(X_hog)
 # Apply the scaler to X
 scaled_X_hog = X_scaler_hog.transform(X_hog)
+
+# feature vector plot
+plt.figure()
+plt.plot(X_color[0])
+plt.ylabel('color feature vector')
+#plt.show()
+plt.savefig('./output_images/color_features.png')
+
+plt.figure()
+plt.plot(X_hog[0])
+plt.ylabel('HoG feature vector')
+#plt.show()
+plt.savefig('./output_images/hog_features.png')
+
+plt.figure()
+plt.plot(scaled_X_color[0], label='scaled color features')
+plt.plot(scaled_X_hog[0], label='scaled HoG features')
+plt.legend()
+plt.savefig('./output_images/scaled_features.png')
 
 # concatenate features
 scaled_X = np.concatenate((scaled_X_color, scaled_X_hog), axis=1)

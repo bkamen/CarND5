@@ -65,6 +65,9 @@ def detect_cars(image):
     heatmap = np.clip(apply_threshold(heatmap, 1), 0, 255)
 
     labels = label(heatmap)
+
+
+
     out_img = draw_labeled_bboxes(draw_image, labels)
 
     return out_img
