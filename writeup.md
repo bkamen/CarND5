@@ -30,34 +30,64 @@ The goals / steps of this project are the following:
 ---
 ###Writeup / README
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
-
 ###Histogram of Oriented Gradients (HOG)
 
 ####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
+The code for the HOG feature extraction is in the file 'TrackingFunctions.py' line 7-24. The single channels of the 'YCrCb' colorspace are passed to the function and evaluated.
+Parameters are:
+ - 16 pixels per cell
+ - 2 cells per block
+ - 9 orientation bins
 
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
-
-![alt text][image1]
-
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
-
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
-
-
-![alt text][image2]
 
 ####2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+The goal was to have a tradeoff between speed of the program and accuracy score of the classifier.
+I started with 32 pixels per cell, 2 cells per block and 9 orientations bins. The only change that significantly changed the accuracy without blowing the feature space up too mich was reducing pixels per cell to 16.
+A further reduction to 8 didn't yield much improvement in accuracy but a lot of disadvantage is speed. Same for increasing the orientation bins. Reducing the cells per block resulted in an accuracy drop of the classifier.
+
 
 ####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using...
+The feature space consists of the HOG features, color histogram data and spatial features.
+The parameters are the following:
+
+```python
+spatial_size = (16, 16)  # Spatial binning dimensions
+hist_bins = 32  # Number of histogram bins
+```
+
+For the color histogram and the spatial data the images are also converted to 'YCrCb' colorspace which proved to result in the highest accuracy scores.
+The color histogram data is simply a histogram calculation of every color channel
+
+```python
+    channel1_hist = np.histogram(img[:, :, 0], bins=nbins, range=bins_range, density=True)
+    channel2_hist = np.histogram(img[:, :, 1], bins=nbins, range=bins_range, density=True)
+    channel3_hist = np.histogram(img[:, :, 2], bins=nbins, range=bins_range, density=True)
+```
+
+Important is to keep the magnitude of the output in mind since the resulting array is later concatenated with the spatial data.
+By setting ``density=True`` the output are values between 0 and 1 and therefore in the same magnitude order as the spatial data using the 'YCrCb' color space.
+When a different color space is used the output of the spatial transformation has to be normalized.
+
+The feature vector length for one image of size 64x64 pixels is 1836.
+
+In the script "project_classifier.py" the classifier is trained. The first step is to extract all the above mentioned features (line 34-54).
+Here the HoG and the color features are kept separated at first. Reason is that each feature vector is normalized using the sklearn standard scaler ``sklearn.preprocessing.StandardScaler()``.
+The reason the feature vectors are not first being concatenated and then normalized is to cover the fact that the values in the feature vectors have different magnitude orders.
+
+Before normalization:
+
+![](./output_images/color_features.png "")
+![](./output_images/hog_features.png "")
+
+The HoG values have different magnitudes than the color features.
+
+After normalization:
+
+
+
 
 ###Sliding Window Search
 
